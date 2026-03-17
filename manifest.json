@@ -6,7 +6,11 @@
   "version": "2.0.0",
   "author": "Lightning Pixel",
   "generator_class": "Hunyuan3DMiniGenerator",
-  "tags": ["image-to-3d", "texture", "low-vram"],
+  "tags": [
+    "image-to-3d",
+    "texture",
+    "low-vram"
+  ],
   "models": [
     {
       "id": "hunyuan3d-mini",
@@ -47,5 +51,6 @@
       ],
       "description": "Maximum speed, reduced detail"
     }
-  ]
+  ],
+  "signature": "1B/ZXqtPdqhll41L4yw80TvVH9BEgTc0GMIAT8YsJ7LpDQa/84/oReOesTsUbhwaJAI5q7FUY6upNMtgvI9GCg=="
 }
