@@ -3,7 +3,7 @@
   "name": "Hunyuan3D 2 Mini",
   "source": "https://github.com/modly-ai/extension-hunyuan3d-mini",
   "description": "Lightweight Hunyuan3D variant with 0.6B parameters. Fast generation with optional PBR texture support",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Lightning Pixel",
   "generator_class": "Hunyuan3DMiniGenerator",
   "tags": [

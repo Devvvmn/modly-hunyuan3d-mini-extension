@@ -14,7 +14,7 @@ from typing import Callable, Optional
 
 from PIL import Image
 
-from services.generators.base import BaseGenerator, smooth_progress
+from services.generators.base import BaseGenerator, smooth_progress, GenerationCancelled
 
 _HF_REPO_ID       = "tencent/Hunyuan3D-2mini"
 _SUBFOLDER        = "hunyuan3d-dit-v2-mini"
@@ -82,6 +82,7 @@ class Hunyuan3DMiniGenerator(BaseGenerator):
         image_bytes: bytes,
         params: dict,
         progress_cb: Optional[Callable[[int, str], None]] = None,
+        cancel_event: Optional[threading.Event] = None,
     ) -> Path:
         import torch
 
@@ -94,6 +95,7 @@ class Hunyuan3DMiniGenerator(BaseGenerator):
 
         self._report(progress_cb, 5, "Removing background…")
         image = self._preprocess(image_bytes)
+        self._check_cancelled(cancel_event)
 
         shape_end = 70 if enable_texture else 82
         self._report(progress_cb, 12, "Generating 3D shape…")
@@ -123,12 +125,15 @@ class Hunyuan3DMiniGenerator(BaseGenerator):
         finally:
             stop_evt.set()
 
+        self._check_cancelled(cancel_event)
+
         if enable_texture:
             self._report(progress_cb, 72, "Freeing VRAM for texture model…")
             self._model = None
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
+            self._check_cancelled(cancel_event)
             mesh = self._run_texture(mesh, image, progress_cb)
         else:
             if vert_count > 0 and hasattr(mesh, "vertices") and len(mesh.vertices) > vert_count:
