@@ -1,18 +1,5 @@
 """
 Hunyuan3D 2 Mini — extension setup script.
-
-Creates an isolated venv and installs all required dependencies.
-Called by Modly at extension install time with:
-
-    python setup.py <json_args>
-
-where json_args contains:
-    python_exe  — path to Modly's embedded Python (used to create the venv)
-    ext_dir     — absolute path to this extension directory
-    gpu_sm      — GPU compute capability as integer (e.g. 61 for Pascal, 86 for Ampere)
-
-Example (manual test):
-    python setup.py '{"python_exe":"C:/…/python.exe","ext_dir":"C:/…/hunyuan3d-2-mini","gpu_sm":86}'
 """
 import json
 import platform
@@ -33,9 +20,6 @@ def setup(python_exe: str, ext_dir: Path, gpu_sm: int) -> None:
     print(f"[setup] Creating venv at {venv} …")
     subprocess.run([python_exe, "-m", "venv", str(venv)], check=True)
 
-    # ------------------------------------------------------------------ #
-    # PyTorch — ROCm для AMD GPU
-    # ------------------------------------------------------------------ #
     if gpu_sm >= 70:
         torch_index = "https://download.pytorch.org/whl/rocm6.3"
         torch_pkgs  = ["torch", "torchvision"]
@@ -46,13 +30,10 @@ def setup(python_exe: str, ext_dir: Path, gpu_sm: int) -> None:
         print(f"[setup] GPU SM {gpu_sm} (legacy) -> PyTorch 2.5 + CUDA 11.8")
 
     print("[setup] Installing PyTorch …")
-    pip(venv, "install", *torch_pkgs, "--index-url", torch_index)
+    pip(venv, "install", "--no-cache-dir", *torch_pkgs, "--index-url", torch_index)
 
-    # ------------------------------------------------------------------ #
-    # Core dependencies
-    # ------------------------------------------------------------------ #
     print("[setup] Installing core dependencies …")
-    pip(venv, "install",
+    pip(venv, "install", "--no-cache-dir",
         "Pillow",
         "numpy",
         "trimesh",
@@ -67,12 +48,9 @@ def setup(python_exe: str, ext_dir: Path, gpu_sm: int) -> None:
         "scikit-image",
     )
 
-    # ------------------------------------------------------------------ #
-    # rembg + onnxruntime (CPU provider — работает на AMD/NVIDIA/CPU)
-    # ------------------------------------------------------------------ #
     print("[setup] Installing rembg …")
-    pip(venv, "install", "rembg")
-    pip(venv, "install", "onnxruntime")
+    pip(venv, "install", "--no-cache-dir", "rembg")
+    pip(venv, "install", "--no-cache-dir", "onnxruntime")
 
     print("[setup] Done. Venv ready at:", venv)
 
