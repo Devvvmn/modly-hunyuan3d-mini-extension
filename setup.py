@@ -29,21 +29,18 @@ def pip(venv: Path, *args: str) -> None:
 
 def setup(python_exe: str, ext_dir: Path, gpu_sm: int) -> None:
     venv = ext_dir / "venv"
-    is_win = platform.system() == "Windows"
 
     print(f"[setup] Creating venv at {venv} …")
     subprocess.run([python_exe, "-m", "venv", str(venv)], check=True)
 
     # ------------------------------------------------------------------ #
-    # PyTorch — choose version based on GPU architecture
+    # PyTorch — ROCm для AMD GPU
     # ------------------------------------------------------------------ #
     if gpu_sm >= 70:
-        # Volta and newer — PyTorch 2.6 + CUDA 12.4
-        torch_index = "https://download.pytorch.org/whl/cu124"
-        torch_pkgs  = ["torch==2.6.0", "torchvision==0.21.0"]
-        print(f"[setup] GPU SM {gpu_sm} -> PyTorch 2.6 + CUDA 12.4")
+        torch_index = "https://download.pytorch.org/whl/rocm6.3"
+        torch_pkgs  = ["torch", "torchvision"]
+        print(f"[setup] GPU SM {gpu_sm} -> PyTorch ROCm 6.3")
     else:
-        # Pascal (SM 6.x) — PyTorch 2.5 + CUDA 11.8 (last version with SM 6.1)
         torch_index = "https://download.pytorch.org/whl/cu118"
         torch_pkgs  = ["torch==2.5.1", "torchvision==0.20.1"]
         print(f"[setup] GPU SM {gpu_sm} (legacy) -> PyTorch 2.5 + CUDA 11.8")
@@ -71,30 +68,16 @@ def setup(python_exe: str, ext_dir: Path, gpu_sm: int) -> None:
     )
 
     # ------------------------------------------------------------------ #
-    # rembg (background removal)
+    # rembg + onnxruntime (CPU provider — работает на AMD/NVIDIA/CPU)
     # ------------------------------------------------------------------ #
     print("[setup] Installing rembg …")
-    if gpu_sm >= 70:
-        pip(venv, "install", "rembg[gpu]")
-    else:
-        # onnxruntime-gpu has cuDNN FE issues on Pascal — use CPU provider
-        pip(venv, "install", "rembg")
-        pip(venv, "install", "onnxruntime")
-
-    # ------------------------------------------------------------------ #
-    # Texture generation dependencies (optional — heavy)
-    # Skipped here; will be installed on first texture request if needed.
-    # Requires custom C++ extensions (custom_rasterizer, differentiable_renderer)
-    # built via separate wheel distribution.
-    # ------------------------------------------------------------------ #
+    pip(venv, "install", "rembg")
+    pip(venv, "install", "onnxruntime")
 
     print("[setup] Done. Venv ready at:", venv)
 
 
 if __name__ == "__main__":
-    # Accepts either JSON (from Electron) or positional args (for manual testing)
-    # Positional: python setup.py <python_exe> <ext_dir> <gpu_sm>
-    # JSON:       python setup.py '{"python_exe":"...","ext_dir":"...","gpu_sm":86}'
     if len(sys.argv) >= 4:
         setup(
             python_exe = sys.argv[1],
